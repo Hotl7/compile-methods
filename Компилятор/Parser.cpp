@@ -531,7 +531,7 @@ void Parser::OPSProcessing()
 			current++;
 			break;
 		case MAS:			//ссылку на массив записываем в стек
-			element1.value = massivint[OPSarr[current].elem].data();	//data возвращает указатель на первый элемент вектора
+			element1.value = massivint[OPSarr[current].elem].data();	//data возвращает указатель на первый элемент вектора(массива)
 			element1.type = MAS;
 			st.push(element1);
 			current++;
@@ -546,13 +546,13 @@ void Parser::OPSProcessing()
 			current++;
 			break;
 		case SIGN:
-			std::string sym = OPSarr[current].elem;
-			int res;
+			std::string sym = OPSarr[current].elem;		//значение самого знака в виде строки
+			int res;									//переменная для результата операций
 
 			element1 = st.top(); st.pop();		//правое значение
 			element2 = st.top(); st.pop();		//левое значение
 
-			left_operand = element1.value;
+			left_operand = element1.value;		
 			right_operand = *element2.value;
 
 			if (sym == "=") {
@@ -581,7 +581,7 @@ void Parser::OPSProcessing()
 				current++;
 			}
 			else if (sym == "/") {
-				int res = *left_operand / right_operand;
+				int res = *left_operand / right_operand;		//здесь всегда будет целая часть
 				element1.value = new int(res);
 				element1.type = NUMBER;
 				st.push(element1);
@@ -638,20 +638,53 @@ void Parser::OPSProcessing()
 				current++;
 
 			}
+		break;
+		case POINT:
+			int point = stoi(OPSarr[current].elem);				//сама точка
+			current++;
+			if (OPS[current].type == JUMPFALSE) {
 
-			// ДОДЕЛАТЬ ДЛЯ ЦИКЛА , УСЛОВИЯ И ВВОДА ВЫВОДА
+				element1 = st.top(); st.pop();
+				if (element.value == 1)					//если истинно то продвигаемся дальше
+					current++;
+				else
+					current = point;					//если нет то прыгаем на метку false
 
+			};
+			if (OPS[current].type == JUMPTRUE) current = point;		//здесь просто переход на метку 
+			break;
+
+		case OUTP:
+			element1 = st.top(); st.pop();
+			switch (element1.type) 
+			{
+			case IDE:
+			case NUMBER:
+			case MAS:
+				cout << *element1.value<<'\n';
+				current++;			
+				break;
+
+			default:
+				break;
+			}
+			break;
+		case INP:
+			element1 = st.top(); st.pop();
+			switch (element1.type)
+			{
+			case IDE:
+			case MAS:
+				cin >> *element1.value;
+				current++;
+				break;
+			default:
+				break;
+			}
+			break;
+		default:
+			break;
 			
-		
-			
-
-
-			
-
-
-			
-
-
 		}
 	}
 

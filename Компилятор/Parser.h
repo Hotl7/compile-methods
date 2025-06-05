@@ -39,43 +39,19 @@ private:
 
 	};
 
-	struct OPSElem {
+	struct OPSElem {			//элемент опс
 		std::string elem;		//значение элемента ОПС?
 		OPSType type;	//тип элемента ОПС
 
 	};
-	//Запись в таблице переменных
-	struct LexEntry
-	{
-		char* lexptr;
-		int token;
-	}; // ключевое слово
 
-	/*Запись в таблице массивов*/
-	struct ArrEntry
-	{
-		char* masptr;
-		int* mas;
-	};
-
-	// имя массива, значениЯ элементов массива
-	struct ElMas
-	{
-		int mas;
-		int elem;
-	};
-
-	struct StackElem 
+	struct StackElem	///элемент стека
 	{
 		int* value;
 		OPSType type;
 
 	};
-
-
-	//LexEntry symtable[N];	//Таблица констант?
-	//LexEntry number[N];		//Таблица переменных и их значений?
-	//ArrEntry massiv[N];		//Таблица массивово и их значений?
+	
 	std::map<std::string, std::vector<int>> massivint;			//таблица массивов (его имя и сам массив)
 	std::map<std::string, int> variables;			//таблица переменных(имя переменной и ее значение)
 	
@@ -83,14 +59,13 @@ private:
 	std::vector<Token> tokens;	//Токены от лексического анализатора, этот вектор определяется в конструкторе
 	std::vector<Token>::iterator it = tokens.begin();				//Итератор для вектора
 
-	//int lextype;			//тип лексемы
-	//int tokenval;			//значение лексемы , эти две переменные должны быть в токене, нужно это тут переделать
 	int n;					//символьная длина элемента в ОПС
 	int OPScount = 0;		/*счётчик элементов в ОПС*/
 	OPSElem OPSarr[9999]; /*генерируемая ОПС*/
 
 	void OPSGenerate(int sym, std::string tval);	//Генерация ОПС
 	void NextLexem(int sym);			//Следующая лексема, проверяем соответствует ли она той что в sym
+
 	std::string LookNext();				//смотрим значение следующей лексемы, костыль для массива
 
 	void MulDelExpr();					//Умножение и деление 
@@ -101,8 +76,7 @@ private:
 	void ConditionInBrackets();			//Выражение в if и while
 	void VarExpr();							//Грамматика с объявлениями 
 	void QExpr();					//Грамматика Q
-
-	void CompareExpr();						//Операторы сравнения?
+	void CompareExpr();						//Операторы сравнения
 
 	void CreateArray(std::string name);
 	void CreateVariable(std::string name);
