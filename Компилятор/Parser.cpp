@@ -1,4 +1,5 @@
 ﻿#include "Parser.h"
+#include <iostream>
 
 void Parser::OPSGenerate(int sym, std::string tval)
 {	
@@ -15,11 +16,11 @@ void Parser::OPSGenerate(int sym, std::string tval)
 	case GREATER_OR_EQUAL:	//>=
 	case LESS_OR_EQUAL:		//<=
 	case EQUAL:				//==
+		
 		OPSarr[OPScount].elem = tval;		//знак в опс
 		OPSarr[OPScount].type = SIGN;
 		OPScount++;
 		break;
-
 	case INTEGER:							//константа целочисленная в опс
 		OPSarr[OPScount].elem = tval;
 		OPSarr[OPScount].type = NUMBER;
@@ -93,7 +94,7 @@ void Parser::MulDelExpr() //P->(E)|aH|k | H->[E]| λ
 	switch ((*it).type)
 	{
 	case INTEGER:							//k
-		OPSGenerate(NUMBER, (*it).value);
+		OPSGenerate(INTEGER, (*it).value);
 		NextLexem(INTEGER);
 		break;
 	case NAME:							//a
@@ -103,7 +104,7 @@ void Parser::MulDelExpr() //P->(E)|aH|k | H->[E]| λ
 			NextLexem('[');
 			LocExpr();						//E
 			NextLexem(']');
-			OPSGenerate(INDEX, 0);
+			OPSGenerate(INDEX, "0");
 			break;
 		}
 		else {
@@ -124,15 +125,15 @@ void Parser::MulDelExpr() //P->(E)|aH|k | H->[E]| λ
 
 void Parser::MulDel() // V->*PV | /PV | λ
 {
+	Token sym;
 	switch ((*it).type)
 	{
-		int sym;
 	case '*':
 	case '/':
-		sym = (*it).type;
-		NextLexem((*it).type);		//????????
+		sym = *it;
+		NextLexem(sym.type);		
 		MulDelExpr();		//P
-		OPSGenerate(sym, NONE);
+		OPSGenerate(sym.type, sym.value);
 		MulDel();			//V
 		break;
 
@@ -146,7 +147,7 @@ void Parser::LocExpr() //E->(E)VU | aHVU | kVU
 	switch ((*it).type)
 	{
 	case INTEGER:
-		OPSGenerate(NUMBER, (*it).value);
+		OPSGenerate(INTEGER, (*it).value);
 		NextLexem(INTEGER);
 		MulDel();						//V
 		PlusMinus();					//U		
@@ -158,11 +159,10 @@ void Parser::LocExpr() //E->(E)VU | aHVU | kVU
 			NextLexem('[');
 			LocExpr();
 			NextLexem(']');
-			OPSGenerate(INDEX, 0);
+			OPSGenerate(INDEX, "0");
 			MulDel();						//V
 			PlusMinus();					//U
 			break;
-
 		}
 		else {
 			OPSGenerate(VAR, (*it).value);
@@ -188,15 +188,15 @@ void Parser::LocExpr() //E->(E)VU | aHVU | kVU
 
 void Parser::PlusMinus() //U-> + TU | -TU | λ
 {
+	Token sym;
 	switch ((*it).type)
 	{
-		int sym;
 	case '+':
 	case '-':
-		sym = (*it).type;
-		NextLexem(sym);
+		sym = *it;
+		NextLexem(sym.type);
 		PlusMinusExpr();				//T
-		OPSGenerate(sym, NONE);
+		OPSGenerate(sym.type, sym.value);
 		PlusMinus();					//U
 		break;
 	default:							//λ
@@ -209,7 +209,7 @@ void Parser::PlusMinusExpr() //T->(E)P | aHP | kP
 	switch ((*it).type)
 	{
 	case INTEGER:
-		OPSGenerate(NUMBER, (*it).value);			//Записываем значение константы в ОПС
+		OPSGenerate(INTEGER, (*it).value);			//Записываем значение константы в ОПС
 		NextLexem(INTEGER);						//проверка что входной токен строки соответсвует константе, если соответствует-> следующий токен, если нет то вывод об ошибке
 		MulDelExpr();						//P
 		break;
@@ -221,7 +221,7 @@ void Parser::PlusMinusExpr() //T->(E)P | aHP | kP
 			NextLexem('[');
 			LocExpr();							//E
 			NextLexem(']');
-			OPSGenerate(INDEX, 0);				//Записываем операцию индексирования в ОПС
+			OPSGenerate(INDEX, "0");				//Записываем операцию индексирования в ОПС
 			MulDelExpr();
 			break;
 		}
@@ -252,7 +252,7 @@ void Parser::ConditionInBrackets()// С->(E)VUD | aHVUD | kVUD
 	switch ((*it).type)
 	{
 	case INTEGER:						//k
-		OPSGenerate(NUMBER, (*it).value);
+		OPSGenerate(INTEGER, (*it).value);
 		NextLexem(INTEGER);
 		MulDel();					//V
 		PlusMinus();				//U
@@ -265,7 +265,7 @@ void Parser::ConditionInBrackets()// С->(E)VUD | aHVUD | kVUD
 			NextLexem('[');			//проверяет на соответствие лексему которая подана в функцию с той, которая была считана
 			LocExpr();				//E  (H->[E])
 			NextLexem(']');
-			OPSGenerate(INDEX, 0);
+			OPSGenerate(INDEX, "0");
 			MulDel();				//V
 			PlusMinus();			//U
 			CompareExpr();			//D
@@ -298,6 +298,7 @@ void Parser::ConditionInBrackets()// С->(E)VUD | aHVUD | kVUD
 void Parser::VarExpr()//F->int MF | real M F | aH = E; Q| read(aH); Q| print(E); Q| if(C) {Q} KQ| while(C) {Q} Q | λ
 {						//M ->aL;      L -> [k]| λ
 	if (it != tokens.end()) {
+		Token tk;
 		switch ((*it).type)
 		{
 		case INT:
@@ -306,22 +307,22 @@ void Parser::VarExpr()//F->int MF | real M F | aH = E; Q| read(aH); Q| print(E);
 			{
 			case NAME:
 				if (LookNext() == "[") {
-					OPSGenerate(ARRAY, (*it).value);		//Имя массива
-					
+					//OPSGenerate(ARRAY, (*it).value);		//Имя массива
+					tk = *it;
 					NextLexem(NAME);
 					NextLexem('[');			//проверяет на соответствие лексему которая подана в функцию с той, которая была считана
-					CreateArray((*it).value);			//размер массива
-					NextLexem(INTEGER);				//E  (H->[E])
+					CreateArray(tk.value);			//размер массива
+					NextLexem(INTEGER);				
 					NextLexem(']');
-					OPSGenerate(INDEX, 0);
+					//OPSGenerate(INDEX, "0");
 					break;
 				}
 				else {
-					OPSGenerate(VAR, (*it).value);
+					//OPSGenerate(VAR, (*it).value);
 					CreateVariable((*it).value);
 					NextLexem(NAME);
 				}				
-
+				break;
 			default:
 				//Сообщение об ошибке нужно здесь?, что входные лексемы не соответсвуют L-грамматике?
 				system("PAUSE");
@@ -330,16 +331,19 @@ void Parser::VarExpr()//F->int MF | real M F | aH = E; Q| read(aH); Q| print(E);
 			NextLexem(';');
 			VarExpr();
 			QExpr();
-		
+				
 		default:
 			break;
 		}
+		
+		
 	}
 }
 
 void Parser::QExpr() //Q->aH = E; Q| read(aH); Q| print(E); Q| if(C) {Q} K Q| while(C) {Q} Q | λ
 {
 	int pointJF, pointJ;
+	
 	switch ((*it).type)
 	{
 	case NAME:			//a
@@ -349,20 +353,20 @@ void Parser::QExpr() //Q->aH = E; Q| read(aH); Q| print(E); Q| if(C) {Q} K Q| wh
 			NextLexem('[');
 			LocExpr();		//E тк(H->[E])
 			NextLexem(']');
-			OPSGenerate(INDEX, 0);
+			OPSGenerate(INDEX, "0");
 			NextLexem('=');
-			LocExpr;		//E
-			OPSGenerate('=', NONE);
+			LocExpr();		//E
+			OPSGenerate('=', "=");
 			NextLexem(';');
-			QExpr;
+			QExpr();
 			break;			
 		}
 		else if (LookNext() == "=") {
 			OPSGenerate(VAR, (*it).value);
-			NextLexem(NAME);
+			NextLexem(NAME);	
 			NextLexem('=');
 			LocExpr();		//E
-			OPSGenerate('=', NONE);
+			OPSGenerate('=', "=");
 			NextLexem(';');
 			QExpr(); //Вот тут вопросик нужно посмотреть как работает 
 			break;
@@ -380,18 +384,19 @@ void Parser::QExpr() //Q->aH = E; Q| read(aH); Q| print(E); Q| if(C) {Q} K Q| wh
 				NextLexem('[');
 				LocExpr();
 				NextLexem(']');
-				OPSGenerate(INDEX, 0);
-				NextLexem(')');
+				OPSGenerate(INDEX, "0");
+				NextLexem(')');			
 				NextLexem(';');
+				OPSGenerate(READ, "0");
 				QExpr();
 				break;
-
 			}
-			else if (LookNext() == "=") {
+			else {
 				OPSGenerate(VAR, (*it).value);
 				NextLexem(NAME);
 				NextLexem(')');
 				NextLexem(';');
+				OPSGenerate(READ, "0");
 				QExpr();
 				break;
 			}		
@@ -400,12 +405,15 @@ void Parser::QExpr() //Q->aH = E; Q| read(aH); Q| print(E); Q| if(C) {Q} K Q| wh
 			system("PAUSE");
 			exit(0);
 		}
+		break;
 	case PRINT:
 		NextLexem(PRINT);
 		NextLexem('(');
 		LocExpr();
 		NextLexem(')');
-		OPSGenerate(PRINT,0);
+		NextLexem(';');
+		OPSGenerate(PRINT,"0");
+		QExpr();
 		break;
 	case IF:
 		NextLexem(IF);
@@ -414,7 +422,7 @@ void Parser::QExpr() //Q->aH = E; Q| read(aH); Q| print(E); Q| if(C) {Q} K Q| wh
 		NextLexem(')');
 		pointJF = OPScount;			//Место для будущей метки jfalse в ОПС
 		OPScount++;
-		OPSGenerate(MJFALSE, 0);
+		OPSGenerate(MJFALSE, "0");
 		NextLexem('{');
 		QExpr();
 		NextLexem('}');
@@ -424,7 +432,7 @@ void Parser::QExpr() //Q->aH = E; Q| read(aH); Q| print(E); Q| if(C) {Q} K Q| wh
 			NextLexem(ELSE);
 			pointJ = OPScount;		//Место для будущей метки jtrue в ОПС
 			OPScount++;
-			OPSGenerate(MJTRUE, 0);
+			OPSGenerate(MJTRUE, "0");
 			OPSarr[pointJF].elem = std::to_string(OPScount); //в ОПС под индексом pointJF записываем текущее значение OPScount
 			OPSarr[pointJ].type = OPSarr[pointJF].type = POINT;
 			NextLexem('{');
@@ -448,14 +456,14 @@ void Parser::QExpr() //Q->aH = E; Q| read(aH); Q| print(E); Q| if(C) {Q} K Q| wh
 		NextLexem(')');
 		pointJF = OPScount; //Место будущей метки m1
 		OPScount++;
-		OPSGenerate(MJFALSE, 0);		//генерируем jfalse-оператор в ОПС
+		OPSGenerate(MJFALSE, "0");		//генерируем jfalse-оператор в ОПС
 		NextLexem('{');
 		QExpr();						//выражение в квадратных скобках
 		NextLexem('}');
 		OPSarr[OPScount].elem = std::to_string(pointJ); // в это место записываем значение (pointj) метки m0
 		OPSarr[OPScount].type = OPSarr[pointJF].type = POINT;	//делаем m1 и m0 типом point
 		OPScount++;
-		OPSGenerate(MJTRUE, 0);//заносим <jtrue>-оператор в следующий элемент ОПС
+		OPSGenerate(MJTRUE, "0");//заносим <jtrue>-оператор в следующий элемент ОПС
 		OPSarr[pointJF].elem = std::to_string(OPScount); //в метку m1 заносим текущее значение OPSCount		
 		QExpr();
 		break;
@@ -468,20 +476,20 @@ void Parser::QExpr() //Q->aH = E; Q| read(aH); Q| print(E); Q| if(C) {Q} K Q| wh
 
 void Parser::CompareExpr()//D-> <E|>E|<=E|>=E|==E|!=E
 {
-
+	Token sym;
 	switch ((*it).type)
 	{
-		int sym;
+		
 	case'<':
 	case'>':
 	case EQUAL:				//==
 	case NOT_EQUALS:			//!=
 	case GREATER_OR_EQUAL:	//>=	
 	case LESS_OR_EQUAL:		//<=
-		sym = (*it).type;
-		NextLexem(sym);
+		sym = *it;
+		NextLexem(sym.type);
 		LocExpr();				//E
-		OPSGenerate(sym, NONE);
+		OPSGenerate(sym.type, sym.value);
 		break;
 	default:
 		//Сообщение об ошибке нужно здесь?, что входные лексемы не соответсвуют L-грамматике?
@@ -493,14 +501,14 @@ void Parser::CompareExpr()//D-> <E|>E|<=E|>=E|==E|!=E
 
 void Parser::CreateArray(std::string name)
 {
-	if ((*it).type == INTEGER) {
+	if ((*it).type == INTEGER) {						//вектору задаем размер, главное чтобы он не изменил размерность
 		massivint[name].resize(std::stoi((*it).value));
 	}
 }
 
 void Parser::CreateVariable(std::string name)
 {
-	if ((*it).type == INTEGER) {
+	if ((*it).type == NAME) {					//в map записываем по имени но без значения
 		variables[name] = 0;
 	}
 }
@@ -514,6 +522,9 @@ void Parser::OPSProcessing()
 	StackElem element2;
 	int* left_operand;
 	int right_operand;
+	int point;
+	std::string sym;
+	int res;
 
 	while (current < len) {
 		switch (OPSarr[current].type) 
@@ -546,11 +557,11 @@ void Parser::OPSProcessing()
 			current++;
 			break;
 		case SIGN:
-			std::string sym = OPSarr[current].elem;		//значение самого знака в виде строки
-			int res;									//переменная для результата операций
+			sym = OPSarr[current].elem;		//значение самого знака в виде строки
+												//переменная для результата операций
 
-			element1 = st.top(); st.pop();		//правое значение
-			element2 = st.top(); st.pop();		//левое значение
+			element2 = st.top(); st.pop();		//правое значение
+			element1 = st.top(); st.pop();		//левое значение
 
 			left_operand = element1.value;		
 			right_operand = *element2.value;
@@ -581,7 +592,7 @@ void Parser::OPSProcessing()
 				current++;
 			}
 			else if (sym == "/") {
-				int res = *left_operand / right_operand;		//здесь всегда будет целая часть
+				res = *left_operand / right_operand;		//здесь всегда будет целая часть
 				element1.value = new int(res);
 				element1.type = NUMBER;
 				st.push(element1);
@@ -640,18 +651,18 @@ void Parser::OPSProcessing()
 			}
 		break;
 		case POINT:
-			int point = stoi(OPSarr[current].elem);				//сама точка
+			point = stoi(OPSarr[current].elem);				//сама точка
 			current++;
-			if (OPS[current].type == JUMPFALSE) {
+			if (OPSarr[current].type == JUMPFALSE) {
 
 				element1 = st.top(); st.pop();
-				if (element.value == 1)					//если истинно то продвигаемся дальше
+				if (*element1.value == 1)					//если истинно то продвигаемся дальше
 					current++;
 				else
 					current = point;					//если нет то прыгаем на метку false
 
 			};
-			if (OPS[current].type == JUMPTRUE) current = point;		//здесь просто переход на метку 
+			if (OPSarr[current].type == JUMPTRUE) current = point;		//здесь просто переход на метку 
 			break;
 
 		case OUTP:
@@ -661,7 +672,7 @@ void Parser::OPSProcessing()
 			case IDE:
 			case NUMBER:
 			case MAS:
-				cout << *element1.value<<'\n';
+				std::cout << *element1.value<<'\n';
 				current++;			
 				break;
 
@@ -675,7 +686,7 @@ void Parser::OPSProcessing()
 			{
 			case IDE:
 			case MAS:
-				cin >> *element1.value;
+				std::cin >> *element1.value;
 				current++;
 				break;
 			default:
@@ -690,11 +701,22 @@ void Parser::OPSProcessing()
 
 }
 
+void Parser::OPSoutput()
+{
+	for (int i = 0; i < OPScount + 1; i++)
+	{
+		std::cout << OPSarr[i].elem << " ";
+
+	}
+	std::cout << "\n";
+}
+
 
 
 
 Parser::Parser(std::vector<Token> input_tokens) {
 	tokens = input_tokens;
+	it = tokens.begin();
 
 }
 Parser::~Parser()

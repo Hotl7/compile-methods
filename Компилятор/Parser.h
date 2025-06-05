@@ -14,6 +14,7 @@
 
 #include "utilities.h"
 
+
 #include <vector>
 #include <stack>
 
@@ -22,6 +23,7 @@ class Parser
 public:
 	Parser(std::vector<Token> input_tokens);
 	~Parser();
+	
 
 private:
 	enum OPSType
@@ -57,11 +59,13 @@ private:
 	
 
 	std::vector<Token> tokens;	//Токены от лексического анализатора, этот вектор определяется в конструкторе
-	std::vector<Token>::iterator it = tokens.begin();				//Итератор для вектора
+	std::vector<Token>::iterator it;				//Итератор для вектора
 
 	int n;					//символьная длина элемента в ОПС
 	int OPScount = 0;		/*счётчик элементов в ОПС*/
 	OPSElem OPSarr[9999]; /*генерируемая ОПС*/
+
+public:
 
 	void OPSGenerate(int sym, std::string tval);	//Генерация ОПС
 	void NextLexem(int sym);			//Следующая лексема, проверяем соответствует ли она той что в sym
@@ -80,8 +84,12 @@ private:
 
 	void CreateArray(std::string name);
 	void CreateVariable(std::string name);
-	
+
+	void OPSoutput();
 	void OPSProcessing();					//Обработка ОПС
+	
+	
+	
 
 
 

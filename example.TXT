@@ -1,0 +1,25 @@
+int n; int z; int a;
+int mas[2];
+mas[0] = 1;
+mas[1] = 2;
+n = 5;
+z = 8;
+print(n);
+print(z);
+print(z/n);
+print(z+n);
+print(z+1);
+print(mas[0]);
+print(mas[1] + 1);
+read(a);
+if (a < 10) {
+	z = 10;
+}
+else {
+	n = 8;
+}
+while((n + z) > 0) {
+	n = n - 7;
+	z = z - 7;
+}
+print( n + z );

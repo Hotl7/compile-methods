@@ -3,7 +3,7 @@
 
 #include <string>
 #include <map>
-
+#include <iostream>
 // типы распознаной лексемы
 enum Type
 {
@@ -80,7 +80,7 @@ struct Token
 // таблица служебных слов
 const std::map<std::string, int> table_encoding = {
     {"if", 100},
-    {"else", 101},
+    {"else", 105},
     {"while", 102},
     {"print", 103},
     {"read", 104},
